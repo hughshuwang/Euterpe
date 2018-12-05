@@ -1,4 +1,4 @@
-# Euterpe <img src="images/logo.png" align="right" width="200">
+# Euterpe <img src="images/logo.png" align="right" width="120">
 
 **MIR Framework for Content-based Preference Mining**  
 **Author:** Shu Wang (hugh.shu.wang@gmail.com)  
