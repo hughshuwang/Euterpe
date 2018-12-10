@@ -1,11 +1,8 @@
 # -*- coding: utf-8 -*-
 
 """Tests for euterpe.track.track
-
-TODO: pytest framework required implementation
 """
 
-import os
 import copy
 import pytest
 import numpy as np

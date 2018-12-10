@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
+
 import os
-import numpy as np
 
 
 def gen_attr_dict(l):

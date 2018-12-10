@@ -8,19 +8,8 @@ This module contains the basic `track` class for storing raw signal,
 spectrum, feature series, and basic info, also wrapping funcs from rs
 """
 
-import os
-import time
-import json
-import sys
-
 import numpy as np
-import pandas as pd
-
 import librosa as rs
-import librosa.feature as ft
-import librosa.display as dp
-import librosa.segment as sg
-
 from euterpe.utils import gen_attr_dict
 
 
@@ -49,7 +38,6 @@ class track(object):
         PENDING
     """
 
-
     basic_tags = ['artist', 'album', 'name'] 
     stamp_tags = ['offset', 'duration']
     rawts_tags = ['y', 'sr']
@@ -64,7 +52,6 @@ class track(object):
     # + ... # visualize class structure
     # list of strings
 
-
     def __init__(self, **kwargs):
         """Check input and fill slots (by order)"""
         
@@ -74,7 +61,7 @@ class track(object):
 
         # assign stamp tags
         if all([
-            getattr(self, track.ad_basic_tags[tag]) != None
+            getattr(self, track.ad_basic_tags[tag]) is not None
             for tag in track.basic_tags
         ]): # check if all basic tags are assigned
             for tag in track.stamp_tags:
@@ -86,10 +73,10 @@ class track(object):
 
         # assign raw time series
         if all([
-            getattr(self, track.ad_basic_tags[tag]) != None
+            getattr(self, track.ad_basic_tags[tag]) is not None
             for tag in track.basic_tags
         ]) and all([
-            getattr(self, track.ad_stamp_tags[tag]) != None
+            getattr(self, track.ad_stamp_tags[tag]) is not None
             for tag in track.stamp_tags
             # Note that in default settings, duration is None
             # Only allow initiating (y, sr) when having complete
@@ -110,14 +97,14 @@ class track(object):
              file_type = 'mp3'):
     
         if all([
-            getattr(self, track.ad_basic_tags[tag]) != None
+            getattr(self, track.ad_basic_tags[tag]) is not None
             for tag in track.basic_tags
         ]): # available for basic
             file_path = (db_path + self._artist + '/' + self._album + '/'
                          + self._name + '.' + file_type)
 
             # assign basic stamps, duration default is None 
-            if self._offset == None: self._offset = 0.0
+            if self._offset is None: self._offset = 0.0
             
             vd = dict(zip(track.ad_rawts_tags.values(), 
                           rs.load(file_path, 
@@ -139,29 +126,62 @@ class track(object):
         return None
 
 
-    def basic_info(self):
+    def gen_basics(self):
         report_tags = track.basic_tags + track.stamp_tags
         ad_report_tags = gen_attr_dict(report_tags)
 
         if all([
-            getattr(self, ad_report_tags[tag]) != None
+            getattr(self, ad_report_tags[tag]) is not None
             for tag in report_tags
         ]):
             print("Artist: {}, "
-                "Album: {}, "
-                "Track Name: {},"
-                "Offset: {},"
-                "Duration: {}".format(
-                    self._artist, 
-                    self._album, 
-                    self._name,
-                    self._offset,
-                    self._duration
-                ))
+                  "Album: {}, "
+                  "Name: {},"
+                  "Offset: {},"
+                  "Duration: {}".format(
+                        self._artist, 
+                        self._album, 
+                        self._name,
+                        self._offset,
+                        self._duration
+            ))
         else:
             raise(RuntimeError("Some attrs are missing."))
 
         return None
+
+
+    def gen_dict(self):
+        out_tags = track.basic_tags + track.stamp_tags + track.rawts_tags
+        ad_out_tags = gen_attr_dict(out_tags)
+
+        # drop None first and update the repr lists
+        isnone = [getattr(self, ad_out_tags[tag]) is None for tag in out_tags]
+        out_tags = [out_tags[i] for i in range(len(isnone)) if not isnone[i]]
+        ad_out_tags = gen_attr_dict(out_tags)
+
+        isndarray = [isinstance(getattr(self, ad_out_tags[tag]), np.ndarray) for tag in out_tags]
+        isndarray_n = np.array(range(len(isndarray)))[isndarray] # num format
+
+        if any(isndarray):
+            for i in isndarray_n:
+                tag = out_tags[i]
+                attr_name = ad_out_tags[tag]
+                attr = getattr(self, attr_name)
+                setattr(self, attr_name, attr.tolist())
+                print("Ndarray converted: {}".format(attr_name))
+
+        out_dict = {tag : getattr(self, ad_out_tags[tag]) for tag in out_tags}
+        return out_dict
+
+
+    def __repr__(self):
+        out_dict = self.gen_dict()
+        return str(out_dict)
+
+
+    def __str__(self):
+        raise(NotImplementedError)
 
 
     @property
@@ -199,14 +219,3 @@ class track(object):
     @sr.setter
     def sr(self, value): self._sr = value
 
-
-    def __str__(self):
-        raise(NotImplementedError)
-
-    def __repr__(self):
-        # TODO: should be used for updating the database
-        raise(NotImplementedError)
-        
-
-    # property setters from external information
-    # generate functions from internal wrapped functions
