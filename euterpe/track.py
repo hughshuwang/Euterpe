@@ -34,8 +34,6 @@ class track(object):
         can only be defined in __init__ and by self.load()
         after basic and stamp tag sets are assigned
         for external uses, read-only
-    - features:
-        PENDING
     """
 
     basic_tags = ['artist', 'album', 'name'] 
@@ -95,7 +93,8 @@ class track(object):
 
     def load(self, db_path = '../data-raw/tracks/', 
              file_type = 'mp3'):
-    
+        """Load in y and sr based on basic info"""
+        
         if all([
             getattr(self, track.ad_basic_tags[tag]) is not None
             for tag in track.basic_tags
@@ -118,15 +117,17 @@ class track(object):
 
         for key, value in vd.items():
             setattr(self, key, value)
-            print("Attr assigned: {}".format(key))
+            # print("Attr assigned: {}".format(key))
         
         self._duration = round(len(self._y)/float(self._sr), 2)
-        print("Attr assigned: _duration")
+        # print("Attr assigned: _duration")
 
         return None
 
 
     def gen_basics(self):
+        """Basic output function for basic and stamp info"""
+
         report_tags = track.basic_tags + track.stamp_tags
         ad_report_tags = gen_attr_dict(report_tags)
 
@@ -136,8 +137,8 @@ class track(object):
         ]):
             print("Artist: {}, "
                   "Album: {}, "
-                  "Name: {},"
-                  "Offset: {},"
+                  "Name: {}, "
+                  "Offset: {}, "
                   "Duration: {}".format(
                         self._artist, 
                         self._album, 
@@ -152,6 +153,8 @@ class track(object):
 
 
     def gen_dict(self):
+        """Output function for updating database, export all attr in lists"""
+        
         out_tags = track.basic_tags + track.stamp_tags + track.rawts_tags
         ad_out_tags = gen_attr_dict(out_tags)
 
@@ -169,7 +172,7 @@ class track(object):
                 attr_name = ad_out_tags[tag]
                 attr = getattr(self, attr_name)
                 setattr(self, attr_name, attr.tolist())
-                print("Ndarray converted: {}".format(attr_name))
+                # print("Ndarray converted: {}".format(attr_name))
 
         out_dict = {tag : getattr(self, ad_out_tags[tag]) for tag in out_tags}
         return out_dict
